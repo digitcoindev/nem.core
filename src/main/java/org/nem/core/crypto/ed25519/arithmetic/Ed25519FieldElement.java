@@ -12,7 +12,7 @@ import java.util.Arrays;
  * This implementation is based on the ref10 implementation of SUPERCOP.
  */
 public class Ed25519FieldElement {
-	private final int[] values;
+	private final int[] values = new int[10];
 
 	/**
 	 * Creates a field element.
@@ -24,7 +24,7 @@ public class Ed25519FieldElement {
 			throw new IllegalArgumentException("Invalid 2^25.5 bit representation.");
 		}
 
-		this.values = values;
+		System.arraycopy(values, 0, this.values, 0, 10);
 	}
 
 	/**
@@ -60,13 +60,14 @@ public class Ed25519FieldElement {
 	 * @return The field element this + val.
 	 */
 	public Ed25519FieldElement add(final Ed25519FieldElement g) {
+		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
 		final int[] gValues = g.values;
-		final int[] h = new int[10];
+		final int[] h = result.getRaw();
 		for (int i = 0; i < 10; i++) {
 			h[i] = this.values[i] + gValues[i];
 		}
 
-		return new Ed25519FieldElement(h);
+		return result;
 	}
 
 	/**
@@ -84,13 +85,14 @@ public class Ed25519FieldElement {
 	 * @return The field element this - val.
 	 */
 	public Ed25519FieldElement subtract(final Ed25519FieldElement g) {
+		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
 		final int[] gValues = g.values;
-		final int[] h = new int[10];
+		final int[] h = result.getRaw();
 		for (int i = 0; i < 10; i++) {
 			h[i] = this.values[i] - gValues[i];
 		}
 
-		return new Ed25519FieldElement(h);
+		return result;
 	}
 
 	/**
@@ -106,12 +108,13 @@ public class Ed25519FieldElement {
 	 * @return The field element (-1) * this.
 	 */
 	public Ed25519FieldElement negate() {
-		final int[] h = new int[10];
+		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final int[] h = result.getRaw();
 		for (int i = 0; i < 10; i++) {
 			h[i] = -this.values[i];
 		}
 
-		return new Ed25519FieldElement(h);
+		return result;
 	}
 
 	/**
@@ -388,7 +391,8 @@ public class Ed25519FieldElement {
 		/* |h0| <= 2^25; from now on fits into int32 unchanged */
 		/* |h1| <= 1.01*2^24 */
 
-		final int[] h = new int[10];
+		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final int[] h = result.getRaw();
 		h[0] = (int)h0;
 		h[1] = (int)h1;
 		h[2] = (int)h2;
@@ -400,7 +404,7 @@ public class Ed25519FieldElement {
 		h[8] = (int)h8;
 		h[9] = (int)h9;
 
-		return new Ed25519FieldElement(h);
+		return result;
 	}
 
 	/**
@@ -607,7 +611,8 @@ public class Ed25519FieldElement {
 		h1 += carry0;
 		h0 -= carry0 << 26;
 
-		final int[] h = new int[10];
+		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final int[] h = result.getRaw();
 		h[0] = (int)h0;
 		h[1] = (int)h1;
 		h[2] = (int)h2;
@@ -618,7 +623,7 @@ public class Ed25519FieldElement {
 		h[7] = (int)h7;
 		h[8] = (int)h8;
 		h[9] = (int)h9;
-		return new Ed25519FieldElement(h);
+		return result;
 	}
 
 	/**
@@ -915,7 +920,8 @@ public class Ed25519FieldElement {
 		carry9 = h9 >> 25;
 		h9 -= carry9 << 25;
 
-		final int[] h = new int[10];
+		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final int[] h = result.getRaw();
 		h[0] = h0;
 		h[1] = h1;
 		h[2] = h2;
@@ -927,7 +933,7 @@ public class Ed25519FieldElement {
 		h[8] = h8;
 		h[9] = h9;
 
-		return new Ed25519FieldElement(h);
+		return result;
 	}
 
 	/**

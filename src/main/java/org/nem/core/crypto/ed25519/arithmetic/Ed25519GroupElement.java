@@ -153,10 +153,10 @@ public class Ed25519GroupElement implements Serializable {
 			final Ed25519FieldElement Z,
 			final Ed25519FieldElement T) {
 		this.coordinateSystem = coordinateSystem;
-		this.X = X;
-		this.Y = Y;
-		this.Z = Z;
-		this.T = T;
+		this.X = new Ed25519FieldElement(X.getRaw());
+		this.Y = new Ed25519FieldElement(Y.getRaw());
+		this.Z = new Ed25519FieldElement(Z.getRaw());
+		this.T = null == T ? null : new Ed25519FieldElement(T.getRaw());
 	}
 
 	//endregion
@@ -943,6 +943,6 @@ public class Ed25519GroupElement implements Serializable {
 				this.X.toString(),
 				this.Y.toString(),
 				this.Z.toString(),
-				this.T.toString());
+				null == this.T ? "null" : this.T.toString());
 	}
 }

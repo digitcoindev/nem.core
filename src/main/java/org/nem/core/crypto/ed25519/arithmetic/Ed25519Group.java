@@ -10,7 +10,7 @@ import java.math.BigInteger;
 public class Ed25519Group {
 
 	/**
-	 * 2^252 - 27742317777372353535851937790883648493
+	 * 2^252 + 27742317777372353535851937790883648493
 	 */
 	public static final BigInteger GROUP_ORDER = BigInteger.ONE.shiftLeft(252).add(new BigInteger("27742317777372353535851937790883648493"));
 
