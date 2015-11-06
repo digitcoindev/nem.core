@@ -35,7 +35,7 @@ public class HttpMethodClient<T> implements Closeable {
 	 * Creates a new HTTP method client with default timeouts.
 	 */
 	public HttpMethodClient() {
-		this(5000, 10000, 3 * 60000);
+		this(5000, 10000, 10 * 60000);
 	}
 
 	/**

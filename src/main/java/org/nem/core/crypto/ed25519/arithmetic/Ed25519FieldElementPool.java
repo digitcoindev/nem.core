@@ -1,14 +1,14 @@
 package org.nem.core.crypto.ed25519.arithmetic;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Poll of Ed25519 field elements.
+ * Pool of Ed25519 field elements.
  */
 public class Ed25519FieldElementPool {
-	private static int POOL_SIZE = 10000;
-	private static final Ed25519FieldElement[] POOL = new Ed25519FieldElement[POOL_SIZE];
-	private static final AtomicInteger POSITION = new AtomicInteger(0);
+	private static long POOL_SIZE = 1_000_000;
+	private static final Ed25519FieldElement[] POOL = new Ed25519FieldElement[(int)POOL_SIZE];
+	private static final AtomicLong POSITION = new AtomicLong(0);
 
 	static {
 		for (int i = 0; i < POOL_SIZE; i++) {
@@ -17,7 +17,7 @@ public class Ed25519FieldElementPool {
 
 	}
 
-	public static Ed25519FieldElement next() {
-		return POOL[POSITION.incrementAndGet() % POOL_SIZE];
+	public static Ed25519FieldElement getElement() {
+		return POOL[(int)(POSITION.incrementAndGet() % POOL_SIZE)];
 	}
 }

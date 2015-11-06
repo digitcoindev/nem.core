@@ -35,8 +35,11 @@ public class DsaSignerPerfITCase {
 		// Act:
 		final long start = System.currentTimeMillis();
 		for (int i = 0; i < numTimedIterations; i++) {
-			dsaSigner.verify(input, signature);
+			if (!dsaSigner.verify(input, signature)) {
+				System.out.println("failed at round: " + i);
+			}
 		}
+
 		final long stop = System.currentTimeMillis();
 
 		// Assert:

@@ -60,7 +60,7 @@ public class Ed25519FieldElement {
 	 * @return The field element this + val.
 	 */
 	public Ed25519FieldElement add(final Ed25519FieldElement g) {
-		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final Ed25519FieldElement result = Ed25519FieldElementPool.getElement();
 		final int[] gValues = g.values;
 		final int[] h = result.getRaw();
 		for (int i = 0; i < 10; i++) {
@@ -85,7 +85,7 @@ public class Ed25519FieldElement {
 	 * @return The field element this - val.
 	 */
 	public Ed25519FieldElement subtract(final Ed25519FieldElement g) {
-		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final Ed25519FieldElement result = Ed25519FieldElementPool.getElement();
 		final int[] gValues = g.values;
 		final int[] h = result.getRaw();
 		for (int i = 0; i < 10; i++) {
@@ -108,7 +108,7 @@ public class Ed25519FieldElement {
 	 * @return The field element (-1) * this.
 	 */
 	public Ed25519FieldElement negate() {
-		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final Ed25519FieldElement result = Ed25519FieldElementPool.getElement();
 		final int[] h = result.getRaw();
 		for (int i = 0; i < 10; i++) {
 			h[i] = -this.values[i];
@@ -391,7 +391,7 @@ public class Ed25519FieldElement {
 		/* |h0| <= 2^25; from now on fits into int32 unchanged */
 		/* |h1| <= 1.01*2^24 */
 
-		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final Ed25519FieldElement result = Ed25519FieldElementPool.getElement();
 		final int[] h = result.getRaw();
 		h[0] = (int)h0;
 		h[1] = (int)h1;
@@ -611,7 +611,7 @@ public class Ed25519FieldElement {
 		h1 += carry0;
 		h0 -= carry0 << 26;
 
-		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final Ed25519FieldElement result = Ed25519FieldElementPool.getElement();
 		final int[] h = result.getRaw();
 		h[0] = (int)h0;
 		h[1] = (int)h1;
@@ -920,7 +920,7 @@ public class Ed25519FieldElement {
 		carry9 = h9 >> 25;
 		h9 -= carry9 << 25;
 
-		final Ed25519FieldElement result = Ed25519FieldElementPool.next();
+		final Ed25519FieldElement result = Ed25519FieldElementPool.getElement();
 		final int[] h = result.getRaw();
 		h[0] = h0;
 		h[1] = h1;

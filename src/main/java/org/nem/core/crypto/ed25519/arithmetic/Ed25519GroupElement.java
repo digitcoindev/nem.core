@@ -18,7 +18,7 @@ import java.io.Serializable;
  */
 public class Ed25519GroupElement implements Serializable {
 
-	private final CoordinateSystem coordinateSystem;
+	private CoordinateSystem coordinateSystem;
 	@SuppressWarnings("NonConstantFieldWithUpperCaseName")
 	private final Ed25519FieldElement X;
 	@SuppressWarnings("NonConstantFieldWithUpperCaseName")
@@ -52,7 +52,7 @@ public class Ed25519GroupElement implements Serializable {
 			final Ed25519FieldElement x,
 			final Ed25519FieldElement y,
 			final Ed25519FieldElement Z) {
-		return new Ed25519GroupElement(CoordinateSystem.AFFINE, x, y, Z, null);
+		return Ed25519GroupElementPool.getElement(CoordinateSystem.AFFINE, x, y, Z, null);
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class Ed25519GroupElement implements Serializable {
 			final Ed25519FieldElement X,
 			final Ed25519FieldElement Y,
 			final Ed25519FieldElement Z) {
-		return new Ed25519GroupElement(CoordinateSystem.P2, X, Y, Z, null);
+		return Ed25519GroupElementPool.getElement(CoordinateSystem.P2, X, Y, Z, null);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class Ed25519GroupElement implements Serializable {
 			final Ed25519FieldElement Y,
 			final Ed25519FieldElement Z,
 			final Ed25519FieldElement T) {
-		return new Ed25519GroupElement(CoordinateSystem.P3, X, Y, Z, T);
+		return Ed25519GroupElementPool.getElement(CoordinateSystem.P3, X, Y, Z, T);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class Ed25519GroupElement implements Serializable {
 			final Ed25519FieldElement Y,
 			final Ed25519FieldElement Z,
 			final Ed25519FieldElement T) {
-		return new Ed25519GroupElement(CoordinateSystem.P1xP1, X, Y, Z, T);
+		return Ed25519GroupElementPool.getElement(CoordinateSystem.P1xP1, X, Y, Z, T);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class Ed25519GroupElement implements Serializable {
 			final Ed25519FieldElement yMinusx,
 			final Ed25519FieldElement xy2d) {
 		//noinspection SuspiciousNameCombination
-		return new Ed25519GroupElement(CoordinateSystem.PRECOMPUTED, yPlusx, yMinusx, xy2d, null);
+		return Ed25519GroupElementPool.getElement(CoordinateSystem.PRECOMPUTED, yPlusx, yMinusx, xy2d, null);
 	}
 
 	/**
@@ -134,7 +134,7 @@ public class Ed25519GroupElement implements Serializable {
 			final Ed25519FieldElement YMinusX,
 			final Ed25519FieldElement Z,
 			final Ed25519FieldElement T2d) {
-		return new Ed25519GroupElement(CoordinateSystem.CACHED, YPlusX, YMinusX, Z, T2d);
+		return Ed25519GroupElementPool.getElement(CoordinateSystem.CACHED, YPlusX, YMinusX, Z, T2d);
 	}
 
 	/**
@@ -159,9 +159,28 @@ public class Ed25519GroupElement implements Serializable {
 		this.T = null == T ? null : new Ed25519FieldElement(T.getRaw());
 	}
 
+	/**
+	 * Creates a group element for a curve.
+	 */
+	public Ed25519GroupElement() {
+		this.coordinateSystem = CoordinateSystem.P3;
+		this.X = new Ed25519FieldElement(Ed25519Field.ZERO.getRaw());
+		this.Y = new Ed25519FieldElement(Ed25519Field.ONE.getRaw());
+		this.Z = new Ed25519FieldElement(Ed25519Field.ONE.getRaw());
+		this.T = new Ed25519FieldElement(Ed25519Field.ZERO.getRaw());
+	}
+
 	//endregion
 
 	//region accessors
+
+	/**
+	 * Resets all precomputed tables.
+	 */
+	public void resetPrecomputations() {
+		this.precomputedForSingle = null;
+		this.precomputedForDouble = null;
+	}
 
 	/**
 	 * Gets the coordinate system for the group element.
@@ -170,6 +189,13 @@ public class Ed25519GroupElement implements Serializable {
 	 */
 	public CoordinateSystem getCoordinateSystem() {
 		return this.coordinateSystem;
+	}
+
+	/**
+	 * Sets the coordinate system for the group element.
+	 */
+	public void setCoordinateSystem(final CoordinateSystem coordinateSystem) {
+		this.coordinateSystem = coordinateSystem;
 	}
 
 	/**
@@ -254,7 +280,8 @@ public class Ed25519GroupElement implements Serializable {
 				final Ed25519FieldElement inverse = this.Z.invert();
 				final Ed25519FieldElement x = this.X.multiply(inverse);
 				final Ed25519FieldElement y = this.Y.multiply(inverse);
-				final byte[] s = y.encode().getRaw();
+				final byte[] s = new byte[32];
+				System.arraycopy(y.encode().getRaw(), 0, s, 0, 32);
 				s[s.length - 1] |= (x.isNegative() ? (byte)0x80 : 0);
 
 				return new Ed25519EncodedGroupElement(s);
@@ -370,7 +397,12 @@ public class Ed25519GroupElement implements Serializable {
 				final Ed25519FieldElement inverse = Bij.Z.invert();
 				final Ed25519FieldElement x = Bij.X.multiply(inverse);
 				final Ed25519FieldElement y = Bij.Y.multiply(inverse);
-				this.precomputedForSingle[i][j] = precomputed(y.add(x), y.subtract(x), x.multiply(y).multiply(Ed25519Field.D_Times_TWO));
+				this.precomputedForSingle[i][j] = new Ed25519GroupElement(
+						CoordinateSystem.PRECOMPUTED,
+						y.add(x),
+						y.subtract(x),
+						x.multiply(y).multiply(Ed25519Field.D_Times_TWO),
+						null);
 				Bij = Bij.add(Bi.toCached()).toP3();
 			}
 			// Only every second summand is precomputed (16^2 = 256).
@@ -393,7 +425,12 @@ public class Ed25519GroupElement implements Serializable {
 			final Ed25519FieldElement inverse = Bi.Z.invert();
 			final Ed25519FieldElement x = Bi.X.multiply(inverse);
 			final Ed25519FieldElement y = Bi.Y.multiply(inverse);
-			this.precomputedForDouble[i] = precomputed(y.add(x), y.subtract(x), x.multiply(y).multiply(Ed25519Field.D_Times_TWO));
+			this.precomputedForDouble[i] = new Ed25519GroupElement(
+					CoordinateSystem.PRECOMPUTED,
+					y.add(x),
+					y.subtract(x),
+					x.multiply(y).multiply(Ed25519Field.D_Times_TWO),
+					null);
 			Bi = this.add(this.add(Bi.toCached()).toP3().toCached()).toP3();
 		}
 	}

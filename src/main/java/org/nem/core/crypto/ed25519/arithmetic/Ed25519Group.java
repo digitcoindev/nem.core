@@ -22,13 +22,34 @@ public class Ed25519Group {
 	public static final Ed25519GroupElement BASE_POINT = getBasePoint();
 
 	// different representations of zero
-	public static final Ed25519GroupElement ZERO_P3 = Ed25519GroupElement.p3(Ed25519Field.ZERO, Ed25519Field.ONE, Ed25519Field.ONE, Ed25519Field.ZERO);
-	public static final Ed25519GroupElement ZERO_P2 = Ed25519GroupElement.p2(Ed25519Field.ZERO, Ed25519Field.ONE, Ed25519Field.ONE);
-	public static final Ed25519GroupElement ZERO_PRECOMPUTED = Ed25519GroupElement.precomputed(Ed25519Field.ONE, Ed25519Field.ONE, Ed25519Field.ZERO);
+	public static final Ed25519GroupElement ZERO_P3 = new Ed25519GroupElement(
+			CoordinateSystem.P3,
+			Ed25519Field.ZERO,
+			Ed25519Field.ONE,
+			Ed25519Field.ONE,
+			Ed25519Field.ZERO);
+	public static final Ed25519GroupElement ZERO_P2 = new Ed25519GroupElement(
+			CoordinateSystem.P2,
+			Ed25519Field.ZERO,
+			Ed25519Field.ONE,
+			Ed25519Field.ONE,
+			null);
+	public static final Ed25519GroupElement ZERO_PRECOMPUTED = new Ed25519GroupElement(
+			CoordinateSystem.PRECOMPUTED,
+			Ed25519Field.ONE,
+			Ed25519Field.ONE,
+			Ed25519Field.ZERO,
+			null);
 
 	private static Ed25519GroupElement getBasePoint() {
 		final byte[] rawEncodedGroupElement = HexEncoder.getBytes("5866666666666666666666666666666666666666666666666666666666666666");
-		final Ed25519GroupElement basePoint = new Ed25519EncodedGroupElement(rawEncodedGroupElement).decode();
+		final Ed25519GroupElement tmp = new Ed25519EncodedGroupElement(rawEncodedGroupElement).decode();
+		final Ed25519GroupElement basePoint = new Ed25519GroupElement(
+				tmp.getCoordinateSystem(),
+				tmp.getX(),
+				tmp.getY(),
+				tmp.getZ(),
+				tmp.getT());
 		basePoint.precomputeForScalarMultiplication();
 		basePoint.precomputeForDoubleScalarMultiplication();
 		return basePoint;
